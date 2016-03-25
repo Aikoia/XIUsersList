@@ -93,15 +93,20 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 - (id)init {
     self = [super init];
     if (self) {
-        _usersListType = arc4random()%3;
+        _usersListType = arc4random()%3 + 1;
     }
     return self;
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    self.navigationController.view.userInteractionEnabled = YES;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    
+    self.navigationController.view.userInteractionEnabled = NO;
     if (_usersListType) {
         switch (_usersListType) {
             case UsersListTypeFriends:
@@ -289,7 +294,7 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     cell.user = currentUser;
     [cell starSomeone:^(XIUser *user, UISwitch *switcher) {
         user.isStar = switcher.isOn;
-        NSLog(@"%@%@",user.isStar ? @"关注了" : @"取消关注",user.name);
+        [self showMessage:[NSString stringWithFormat:@"%@%@",user.isStar ? @"关注了" : @"取消关注",user.name]];
     }];
     return cell;
 }
@@ -426,6 +431,34 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     self.searchResults = [[self.searchResults filteredArrayUsingPredicate:finalCompoundPredicate] mutableCopy];
 }
 
+- (void)showMessage:(NSString *)message {
+    YYLabel *msg = [YYLabel new];
+    msg.text = message;
+    msg.textColor = [UIColor whiteColor];
+    msg.backgroundColor = [UIColor redColor];
+    msg.font = [UIFont systemFontOfSize:16];
+    msg.width = self.view.width;
+    msg.height = [msg.text heightForFont:msg.font width:self.view.width] + 20;
+    msg.left = 0;
+    msg.top  = 64 - msg.height;
+    msg.textAlignment = NSTextAlignmentCenter;
+    msg.textVerticalAlignment = YYTextVerticalAlignmentCenter;
+    msg.alpha = 0;
+    [self.view addSubview:msg];
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        msg.alpha = 1;
+        msg.top = 64;
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:0.3 delay:1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            msg.top = 64 - msg.height;
+            msg.alpha = 0;
+        } completion:^(BOOL finished) {
+            [msg removeFromSuperview];
+        }];
+    }];
+    
+}
 
 - (void)dealloc {
     _rootTable.delegate = nil;

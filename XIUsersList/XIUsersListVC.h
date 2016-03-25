@@ -9,9 +9,9 @@
 #import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSInteger,UsersListType) {
-    UsersListTypeFriends    = 0,
-    UsersListTypeFans       = 1,
-    UsersListTypeStars      = 2,
+    UsersListTypeFriends    = 1,
+    UsersListTypeFans,
+    UsersListTypeStars,
 };
 @interface XIUsersListVC : UIViewController
 
