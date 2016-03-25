@@ -16,7 +16,23 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+    
+    UINavigationBar *naviBarAppearance = [UINavigationBar appearance];
+    [naviBarAppearance setBackgroundImage:[UIImage imageWithColor:[UIColor redColor]] forBarMetrics:UIBarMetricsDefault];
+    [naviBarAppearance setTintColor:[UIColor blackColor]];
+    [naviBarAppearance setTitleTextAttributes:@{
+                                                
+                                           NSFontAttributeName:[UIFont boldSystemFontOfSize:18],
+                                           NSForegroundColorAttributeName:[UIColor blackColor]}];
+    
+    [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                                          NSFontAttributeName:[UIFont boldSystemFontOfSize:16],
+                                                          NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
+    
+    [[UITextField appearance] setTintColor:[UIColor colorWithHexString:@"ff8cb7"]];
+    [[UISearchBar appearance] setBackgroundImage:[UIImage imageWithColor:[UIColor colorWithHexString:@"eeeeee"]] forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
+    [[UISwitch appearance] setOnTintColor:[UIColor redColor]];
+
     return YES;
 }
 

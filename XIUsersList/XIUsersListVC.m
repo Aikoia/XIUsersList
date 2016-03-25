@@ -30,7 +30,7 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 @property (nonatomic , strong) XIUser   *user;
 @property (nonatomic , strong) UISwitch *switcher;
-@property (nonatomic , copy)   starSomeoneBlock starSomeone;
+@property (nonatomic , copy  ) starSomeoneBlock starSomeone;
 
 - (void)starSomeone:(starSomeoneBlock)starSomeone;
 
@@ -41,13 +41,13 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        //self.backgroundView.backgroundColor = [UIColor clearColor];
         self.backgroundColor = [UIColor clearColor];
         if (!_switcher) {
             _switcher = [UISwitch new];
             [_switcher sizeToFit];
             _switcher.centerY = [XIUserCell cellHeight]/2;
             _switcher.centerX = kScreenWidth - _switcher.width;
+            [_switcher addTarget:self action:@selector(handler:) forControlEvents:UIControlEventValueChanged];
             [self.contentView addSubview:_switcher];
         }
     }
@@ -60,10 +60,15 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     [_switcher setOn:_user.isStar];
 }
 
+- (void)handler:(id)sender {
+    if (_starSomeone) {
+        _starSomeone(_user,sender);
+    }
+}
+
 - (void)starSomeone:(starSomeoneBlock)starSomeone {
     if (starSomeone) {
         _starSomeone = starSomeone;
-        _starSomeone(_user,_switcher);
     }
 }
 
@@ -85,9 +90,32 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 @implementation XIUsersListVC
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        _usersListType = arc4random()%3;
+    }
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    if (_usersListType) {
+        switch (_usersListType) {
+            case UsersListTypeFriends:
+                self.navigationItem.title = @"Friends";
+                break;
+            case UsersListTypeFans:
+                self.navigationItem.title = @"Fans";
+                break;
+            case UsersListTypeStars:
+                self.navigationItem.title = @"Stars";
+                break;
+        }
+    }
+    
     _rootTable = ({
         UITableView *tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
         tableView.delegate = self;
@@ -112,6 +140,9 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     _searchTable = ({
         UISearchDisplayController *searchDisplayVC = [[UISearchDisplayController alloc] initWithSearchBar:_searchBar contentsController:self];
         searchDisplayVC.delegate = self;
+        searchDisplayVC.searchResultsDataSource = self;
+        searchDisplayVC.searchResultsDelegate = self;
+        [searchDisplayVC.searchResultsTableView registerClass:[XIUserCell class] forCellReuseIdentifier:kCellIdentifier_UserCell];
         searchDisplayVC;
     });
     
@@ -125,7 +156,6 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
                       @{@"name":@"色东",@"isStar":@(NO)},
                       @{@"name":@"骚伟",@"isStar":@(YES)}];
     NSArray *array = [NSArray modelArrayWithClass:[XIUser class] json:data];
-    _searchResults = [array mutableCopy];
     _userGroups = [self groupUsersByPinyinFrom:array];
 }
 
@@ -192,6 +222,9 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     return keys;
 }
 
+
+
+#pragma mark - *UITableViewDelegate/DataSource
 -(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
     if (tableView == _rootTable) {
         return [self groupKeys];
@@ -211,7 +244,7 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index {
     if (index == 0) {
-        [tableView setContentOffset:CGPointZero animated:YES];
+        [tableView scrollToTopAnimated:NO];
         return NSNotFound;
     }
     return index;
@@ -247,13 +280,17 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     XIUserCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellIdentifier_UserCell forIndexPath:indexPath];
-    XIUser *user;
+    XIUser *currentUser;
     if (tableView != _rootTable) {
-        user = _searchResults[indexPath.row];
+        currentUser = _searchResults[indexPath.row];
     } else {
-        user = [_userGroups objectForKey:[self groupKeys][indexPath.section]][indexPath.row];
+        currentUser = [_userGroups objectForKey:[self groupKeys][indexPath.section]][indexPath.row];
     }
-    cell.user = user;
+    cell.user = currentUser;
+    [cell starSomeone:^(XIUser *user, UISwitch *switcher) {
+        user.isStar = switcher.isOn;
+        NSLog(@"%@%@",user.isStar ? @"关注了" : @"取消关注",user.name);
+    }];
     return cell;
 }
 
@@ -295,7 +332,11 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     return [XIUserCell cellHeight];
 }
 
-#pragma mark UISearchBarDelegate
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+#pragma mark - *UISearchBarDelegate
 - (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar {
     [self setSearchBar:searchBar backgroudColor:[UIColor redColor]];
     return YES;
@@ -306,14 +347,14 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     return YES;
 }
 
-#pragma mark UISearchDisplayDelegate
+#pragma mark - *UISearchDisplayDelegate
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
 {
     [self updateFilteredContentForSearchString:searchString];
     return YES;
 }
 
-#pragma mark OtherMethods
+#pragma mark - *OtherMethods
 - (void)setSearchBar:(UISearchBar *)searchBar backgroudColor:(UIColor *)color {
     static NSInteger customBgTag = 999;
     UIView *realView = [[searchBar subviews] firstObject];
@@ -332,8 +373,11 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 - (void)updateFilteredContentForSearchString:(NSString *)searchString{
     // start out with the entire list
-
-    
+    NSMutableArray *array = [NSMutableArray array];
+    for (NSArray *users in [_userGroups allValues]) {
+        [array addObjectsFromArray:users];
+    }
+    _searchResults = [array mutableCopy];
     // strip out all the leading and trailing spaces
     NSString *strippedStr = [searchString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     

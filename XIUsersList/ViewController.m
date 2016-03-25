@@ -18,26 +18,28 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.navigationItem.title = @"ME";
+    
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:@"Users"];
-    text.font = [UIFont boldSystemFontOfSize:20];
+    text.font = [UIFont boldSystemFontOfSize:30];
     text.color = [UIColor redColor];
     
     YYTextBorder *border = [YYTextBorder new];
     border.strokeColor = [UIColor redColor];
-    border.strokeWidth = 0.5;
+    border.strokeWidth = 1;
     border.cornerRadius = 100;
-    border.insets = UIEdgeInsetsMake(0.5, -10, 0, -10);
+    border.insets = UIEdgeInsetsMake(1, -10, 0, -10);
     text.textBackgroundBorder = border;
     
     YYTextBorder *linkBorder = [YYTextBorder new];
-    linkBorder.strokeColor = [UIColor whiteColor];
     linkBorder.strokeWidth = 0;
     linkBorder.fillColor = [UIColor redColor];
     linkBorder.cornerRadius = 100;
     linkBorder.insets = border.insets;
     
     YYTextHighlight *highlight = [YYTextHighlight new];
-    [highlight setColor:[UIColor whiteColor]];
+    [highlight setColor:[UIColor blackColor]];
     [highlight setBackgroundBorder:linkBorder];
     
     [text setTextHighlight:highlight range:text.rangeOfAll];
@@ -50,7 +52,7 @@
     label.centerY = label.height/2.0;
     label.textAlignment = NSTextAlignmentCenter;
     label.textVerticalAlignment = YYTextVerticalAlignmentCenter;
-    label.backgroundColor = [UIColor colorWithWhite:0.933 alpha:1.000];
+    label.backgroundColor = [UIColor colorWithHexString:@"eeeeee"];
     [self.view addSubview:label];
     label.highlightTapAction = ^(UIView *containerView, NSAttributedString *text, NSRange range, CGRect rect) {
         [self.navigationController pushViewController:[XIUsersListVC new] animated:YES];
