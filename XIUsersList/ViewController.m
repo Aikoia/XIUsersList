@@ -21,6 +21,18 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationItem.title = @"ME";
     
+    UIView *statusView = nil;
+    if (![UIVisualEffectView class]) {
+        statusView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+    } else {
+        statusView = [UIView new];
+    }
+    statusView.backgroundColor = [UIColor redColor];
+    statusView.frame = CGRectMake(0, 44, kScreenWidth, 0.5);
+    
+    [self.navigationController.navigationBar addSubview:statusView];
+    
+    
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:@"Users"];
     text.font = [UIFont boldSystemFontOfSize:30];
     text.color = [UIColor redColor];

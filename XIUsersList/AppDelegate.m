@@ -16,8 +16,9 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    
+
     UINavigationBar *naviBarAppearance = [UINavigationBar appearance];
+    //naviBarAppearance.clipsToBounds = YES;
     [naviBarAppearance setBackgroundImage:[UIImage imageWithColor:[UIColor redColor]] forBarMetrics:UIBarMetricsDefault];
     [naviBarAppearance setTintColor:[UIColor blackColor]];
     [naviBarAppearance setTitleTextAttributes:@{

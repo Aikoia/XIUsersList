@@ -20,6 +20,10 @@
     return [NSString pinyinOfString:_name];
 }
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"%@",@{@"name":_name,@"isStar":@(_isStar)}];
+}
+
 @end
 
 #define kCellIdentifier_UserCell @"UserCell"
@@ -103,8 +107,16 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     self.navigationController.view.userInteractionEnabled = YES;
 }
 
+- (void)done {
+    NSLog(@"%@",_userGroups);
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    UIBarButtonItem *rightBar = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done)];
+    self.navigationItem.rightBarButtonItem = rightBar;
+    
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.view.userInteractionEnabled = NO;
     if (_usersListType) {
@@ -158,6 +170,7 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     //简单数据源
     NSArray *data = @[@{@"name":@"大军",@"isStar":@(NO)},
                       @{@"name":@"凯子",@"isStar":@(NO)},
+                      @{@"name":@"110",@"isStar":@(NO)},
                       @{@"name":@"色东",@"isStar":@(NO)},
                       @{@"name":@"骚伟",@"isStar":@(YES)}];
     NSArray *array = [NSArray modelArrayWithClass:[XIUser class] json:data];
@@ -240,8 +253,8 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (tableView == _rootTable) {
-        if ([self groupKeys].count > section && section > 0) {
-            return [self groupKeys][section];
+        if (_userGroups && _userGroups.count > 0) {
+            return [self groupKeys][section + 1];
         }
     }
     return nil;
@@ -252,14 +265,14 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
         [tableView scrollToTopAnimated:NO];
         return NSNotFound;
     }
-    return index;
+    return index - 1;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     NSInteger sections;
     if (tableView == _rootTable) {
-        if (_userGroups) {
-            sections = _userGroups.allKeys.count + 1;
+        if (_userGroups && _userGroups.count > 0) {
+            sections = [_userGroups.allKeys count];
         } else {
             sections = 1;
         }
@@ -272,10 +285,8 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSInteger rows;
     if (tableView == _rootTable) {
-        if ([self groupKeys] && [[self groupKeys] count] > section) {
-            rows = [[_userGroups objectForKey:[self groupKeys][section]] count];
-        } else {
-            rows = 0;
+        if (_userGroups && _userGroups.count > 0) {
+            rows = [_userGroups[[self groupKeys][section+1]] count];
         }
     } else {
         rows = _searchResults.count;
@@ -289,7 +300,7 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
     if (tableView != _rootTable) {
         currentUser = _searchResults[indexPath.row];
     } else {
-        currentUser = [_userGroups objectForKey:[self groupKeys][indexPath.section]][indexPath.row];
+        currentUser = [_userGroups objectForKey:[self groupKeys][indexPath.section + 1]][indexPath.row];
     }
     cell.user = currentUser;
     [cell starSomeone:^(XIUser *user, UISwitch *switcher) {
@@ -324,9 +335,6 @@ typedef void(^starSomeoneBlock)(XIUser *user,UISwitch *switcher);
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
     if (tableView == _rootTable) {
-        if (section == 0) {
-            return 0;
-        }
         return 20;
     }else{
         return 0;
