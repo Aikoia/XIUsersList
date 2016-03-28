@@ -1,6 +1,6 @@
 # XIUsersList
 
->More socailnetwork app has the feture,so I try to code a demo for it.
+>More and more socail network app has the feature,so I try to code a demo for it.
 
 ## Info
 All code in a .h file, and you can change anything you want.
